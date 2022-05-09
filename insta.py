@@ -1,18 +1,27 @@
 import instaloader
 import pandas as pd
-#import tkinter
-#from tkinter import simpledialog
-
-
 
 def loginConta():
 
-    login=input("LOGIN = ")
-    senha=input("DIGITE A SENHA = ")
+    try:
+        L = instaloader.Instaloader()
 
-    print("Login realizado com sucesso.")
+        login=input("Nome de Usuário: ")
+        senha=input("Senha do Usuário: ")
 
-    return login, senha
+        L.login(str(login), str(senha))
+
+        print("Login realizado com sucesso!")
+
+        return login, senha
+
+    except:
+
+        print("Login inválido, tente novamente")
+
+        return login, senha
+
+
 
 
 
@@ -20,56 +29,83 @@ def extracaoSeguidores(login, senha):
 
     L = instaloader.Instaloader()
 
-    L.login(str(login), str(senha))
+    try:
 
-    perfil = input("Escreva o nome do usuário do perfil alvo: ")
-    #posts = instaloader.Profile.from_username(L.context, perfil).get_posts()
-    seguidores = instaloader.Profile.from_username(L.context, perfil)
-    seguindo = instaloader.Profile.from_username(L.context, perfil)
+        L.login(str(login), str(senha))
 
-    #postagens = []
-    followers = []
-    followees = []
+        perfil = input("Insira o perfil alvo: ")
+        seguidores = instaloader.Profile.from_username(L.context, perfil)
+        seguindo = instaloader.Profile.from_username(L.context, perfil)
 
-    ###CAPTURAR ÚLTIMA POSTAGENS###
+        #postagens = []
+        followers = []
+        followees = []
 
-    #for post in posts:
-    #    print(post.caption)
-    #    postagens.append(post.caption)
 
-    #df = pd.DataFrame(postagens, columns=['Postagem'])
+        ###CAPTURAR SEGUIDORES###
+        for seg in seguidores.get_followers():
+            followers.append([perfil, seg.username])
+        ###CAPTURAR SEGUINDO###
+        for seg in seguindo.get_followees():
+            followees.append([perfil, seg.username])
 
-    ###CAPTURAR SEGUIDORES###
-    for seg in seguidores.get_followers():
-        followers.append([perfil, seg.username])
-    ###CAPTURAR SEGUINDO###
-    for seg in seguindo.get_followees():
-        followees.append([perfil, seg.username])
+        df = pd.DataFrame(followers, columns=['Usuário','Seguidores'])
+        df1 = pd.DataFrame(followees, columns=['Usuário', 'Seguindo'])
 
-    df = pd.DataFrame(followers, columns=['Usuário','Seguidores'])
-    df1 = pd.DataFrame(followees, columns=['Usuário', 'Seguindo'])
+        with pd.ExcelWriter(perfil + "Seguidores" + ".xlsx") as writer:
+            df.to_excel(writer, index=False)
 
-    with pd.ExcelWriter(perfil + "Seguidores" + ".xlsx") as writer:
-        df.to_excel(writer, index=False)
+        with pd.ExcelWriter(perfil + "Seguindo" + ".xlsx") as writer:
+            df1.to_excel(writer, index=False)
 
-    with pd.ExcelWriter(perfil + "Seguindo" + ".xlsx") as writer:
-        df1.to_excel(writer, index=False)
+        print("Extração realizado com sucesso")
+
+    except:
+
+        print("Tente Novamente/Refaça o Login")
 
 def postagens(login, senha):
 
     L = instaloader.Instaloader()
 
-    L.login(str(login), str(senha))
+    try:
 
-    perfil = input("Escreva o nome do usuário do pefil alvo: ")
+        L.login(str(login), str(senha))
 
-    postagens = instaloader.Profile.from_username(L.context, perfil).get_posts()
+        perfil = input("Perfil Alvo: ")
 
-    for posts in postagens:
-        L.download_post(posts, perfil)
+        postagens = instaloader.Profile.from_username(L.context, perfil).get_posts()
 
+        for posts in postagens:
+            L.download_post(posts, perfil)
 
-opcao = input("Escolha uma opção: \n 1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 0 - Fechar programa \n ")
+        print("Extração realizada com sucesso")
+
+    except:
+
+        print("Tente Novamente/Refaça o Login")
+
+def stories(login, senha):
+
+    L = instaloader.Instaloader()
+
+    try:
+
+        L.login(str(login), str(senha))
+
+        perfil = input("Perfil Alvo: ")
+
+        Id = L.check_profile_id(perfil)
+
+        L.download_stories(userids=[Id], fast_update=True, filename_target=perfil + '-stories')
+
+        print("Extração realizada com sucesso")
+
+    except:
+
+        print("Tente Novamente/Refaça o Login")
+
+opcao = input("1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 0 - Fechar programa \n ")
 
 while(int(opcao) < 4 or opcao != 0):
 
@@ -79,20 +115,14 @@ while(int(opcao) < 4 or opcao != 0):
         extracaoSeguidores(login, senha)
     elif int(opcao) == 3:
         postagens(login, senha)
+
+    elif int(opcao) == 4:
+        stories(login, senha)
+
     elif int(opcao) == 0:
-        print("programa encerrado")
-        exit()
+        print("PROGRAMA FINALIZADO")
+        break
 
 
 
-    opcao = input("Escolha uma opção: \n 1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 0 - Fechar programa \n")
-
-
-
-
-
-
-#root = tkinter.Tk()
-#root.withdraw()
-#perfil = simpledialog.askstring("USUÁRIO", "Nome de usuário")
-#root.destroy()
+    opcao = input("1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 0 - Fechar programa \n ")
