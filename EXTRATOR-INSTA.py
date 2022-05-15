@@ -14,7 +14,7 @@ def loginConta():
         L = instaloader.Instaloader()
 
         login=simpledialog.askstring(title="USUÁRIO", prompt="Usuário")
-        senha=simpledialog.askstring(title="SENHA", prompt="Senha")
+        senha=simpledialog.askstring(title="SENHA", prompt="Senha", show="*")
 
         L.login(str(login), str(senha))
 
@@ -112,7 +112,27 @@ def stories(login, senha):
 
         messagebox.showinfo(title="ATENÇÃO", message="Tente Novamente/Refaça o Login")
 
-opcao = simpledialog.askstring(title="Escolha uma opção:", prompt="1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 0 - Fechar programa \n ")
+def favoritos(login, senha):
+
+    L = instaloader.Instaloader()
+
+    try:
+
+        L.login(str(login), str(senha))
+
+        perfil = simpledialog.askstring(title="PERFIL", prompt="Perfil Alvo")
+
+        Id = L.check_profile_id(perfil)
+
+        L.download_highlights(Id, fast_update=True, filename_target=perfil + '-highlights')
+
+        messagebox.showinfo(title="ATENÇÃO", message="Extração realizada com sucesso")
+
+    except:
+
+        messagebox.showinfo(title="ATENÇÃO", message="Tente Novamente/Refaça o Login")
+
+opcao = simpledialog.askstring(title="Escolha uma opção:", prompt="1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 5 - Extrair Highlights \n 0 - Fechar programa \n ")
 
 while(int(opcao) < 4 or opcao != 0):
 
@@ -126,10 +146,13 @@ while(int(opcao) < 4 or opcao != 0):
     elif int(opcao) == 4:
         stories(login, senha)
 
+    elif int(opcao) == 5:
+        favoritos(login, senha)
+
     elif int(opcao) == 0:
         messagebox.showinfo(title="ENCERRANDO", message="PROGRAMA FINALIZADO")
         break
 
 
 
-    opcao = simpledialog.askstring(title="Escolha uma opção:", prompt="1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 0 - Fechar programa \n ")
+    opcao = simpledialog.askstring(title="Escolha uma opção:", prompt="1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 5 - Extrair Highlights \n 0 - Fechar programa \n ")
