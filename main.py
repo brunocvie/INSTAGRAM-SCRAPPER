@@ -104,8 +104,34 @@ def stories(login, senha):
     except:
 
         print("Tente Novamente/Refaça o Login")
+        
+def favoritos(login, senha):
 
-opcao = input("1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 0 - Fechar programa \n ")
+    L = instaloader.Instaloader()
+
+    try:
+
+        L.login(str(login), str(senha))
+
+        perfil = input("Perfil Alvo: ")
+
+        #highlights = instaloader.Profile.from_username(L.context, perfil).get_highlights()
+
+        Id = L.check_profile_id(perfil)
+
+        L.download_highlights(Id, fast_update=True, filename_target=perfil + '-highlights')
+
+        #for high in highlights:
+            #L.download_highlights(high, perfil)
+
+        print("Extração realizada com sucesso")
+
+    except:
+
+        print("Tente Novamente/Refaça o Login")
+
+
+opcao = input("1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 5 - Extrair Highlights \n 0 - Fechar programa \n ")
 
 while(int(opcao) < 4 or opcao != 0):
 
@@ -119,10 +145,13 @@ while(int(opcao) < 4 or opcao != 0):
     elif int(opcao) == 4:
         stories(login, senha)
 
+    elif int(opcao) == 5:
+        favoritos(login, senha)
+
     elif int(opcao) == 0:
         print("PROGRAMA FINALIZADO")
         break
 
 
 
-    opcao = input("1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 0 - Fechar programa \n ")
+    opcao = input("1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 5 - Extrair Highlights \n 0 - Fechar programa \n ")
