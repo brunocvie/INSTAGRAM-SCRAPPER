@@ -1,157 +1,176 @@
+import tkinter as tk
+from tkinter import simpledialog, messagebox
 import instaloader
 import pandas as pd
+from time import sleep
 
-def loginConta():
+ROOT = tk.Tk()
 
-    try:
-        L = instaloader.Instaloader()
+ROOT.withdraw
 
-        login=input("Nome de Usuário: ")
-        senha=input("Senha do Usuário: ")
+class instagramScrapper():
 
-        L.login(str(login), str(senha))
+    def __init__(self):
 
-        print("Login realizado com sucesso!")
+        self.L = instaloader.Instaloader()
 
-        return login, senha
+    def loginConta(self):
 
-    except:
+        try:
 
-        print("Login inválido, tente novamente")
+            login=simpledialog.askstring(title="USUÁRIO", prompt="Usuário")
+            senha=simpledialog.askstring(title="SENHA", prompt="Senha", show="*")
 
-        return login, senha
+            self.L.login(str(login), str(senha))
 
+            messagebox.showinfo(title="ATENÇÃO", message="Login realizado com sucesso")
 
+        except:
 
+            messagebox.showinfo(title="ATENÇÃO", message="LOGIN INCORRETO")
 
+    def extracaoSeguidores(self):
 
-def extracaoSeguidores(login, senha):
+        try:
 
-    L = instaloader.Instaloader()
+            self.L.context.do_sleep()
 
-    try:
+            perfil = simpledialog.askstring(title="PERFIL", prompt="Perfil Alvo")
+            seguidores = instaloader.Profile.from_username(self.L.context, perfil)
 
-        L.login(str(login), str(senha))
+            #postagens = []
+            followers = []
 
-        perfil = input("Insira o perfil alvo: ")
-        seguidores = instaloader.Profile.from_username(L.context, perfil)
-        seguindo = instaloader.Profile.from_username(L.context, perfil)
+            ###CAPTURAR SEGUIDORES###
+            for seg in seguidores.get_followers():
+                followers.append([perfil, seg.username])
+                sleep(1)
 
-        #postagens = []
-        followers = []
-        followees = []
+            df = pd.DataFrame(followers, columns=['Usuário','Seguidores'])
 
+            with pd.ExcelWriter(perfil + "Seguidores" + ".xlsx") as writer:
+                df.to_excel(writer, index=False)
 
-        ###CAPTURAR SEGUIDORES###
-        for seg in seguidores.get_followers():
-            followers.append([perfil, seg.username])
-        ###CAPTURAR SEGUINDO###
-        for seg in seguindo.get_followees():
-            followees.append([perfil, seg.username])
+            messagebox.showinfo(title="ATENÇÃO", message="Extração realizada com sucesso")
 
-        df = pd.DataFrame(followers, columns=['Usuário','Seguidores'])
-        df1 = pd.DataFrame(followees, columns=['Usuário', 'Seguindo'])
+        except:
 
-        with pd.ExcelWriter(perfil + "Seguidores" + ".xlsx") as writer:
-            df.to_excel(writer, index=False)
+            messagebox.showinfo(title="ATENÇÃO", message="Tente Novamente/Refaça o Login")
 
-        with pd.ExcelWriter(perfil + "Seguindo" + ".xlsx") as writer:
-            df1.to_excel(writer, index=False)
+    def extracaoSeguindo(self):
 
-        print("Extração realizado com sucesso")
+        try:
 
-    except:
+            self.L.context.do_sleep()
 
-        print("Tente Novamente/Refaça o Login")
+            perfil = simpledialog.askstring(title="PERFIL", prompt="Perfil Alvo")
+            seguindo = instaloader.Profile.from_username(self.L.context, perfil)
 
-def postagens(login, senha):
+            #postagens = []
+            followees = []
 
-    L = instaloader.Instaloader()
+            ###CAPTURAR SEGUINDO###
+            for seg in seguindo.get_followees():
+                followees.append([perfil, seg.username])
+                sleep(1)
 
-    try:
+            df1 = pd.DataFrame(followees, columns=['Usuário', 'Seguindo'])
 
-        L.login(str(login), str(senha))
+            with pd.ExcelWriter(perfil + "Seguindo" + ".xlsx") as writer:
+                df1.to_excel(writer, index=False)
 
-        perfil = input("Perfil Alvo: ")
+            messagebox.showinfo(title="ATENÇÃO", message="Extração realizada com sucesso")
 
-        postagens = instaloader.Profile.from_username(L.context, perfil).get_posts()
+        except:
 
-        for posts in postagens:
-            L.download_post(posts, perfil)
+            messagebox.showinfo(title="ATENÇÃO", message="Tente Novamente/Refaça o Login")
 
-        print("Extração realizada com sucesso")
+    def postagens(self):
 
-    except:
+        try:
 
-        print("Tente Novamente/Refaça o Login")
+            self.L.context.do_sleep()
 
-def stories(login, senha):
+            perfil = simpledialog.askstring(title="PERFIL", prompt="Perfil Alvo")
 
-    L = instaloader.Instaloader()
+            postagens = instaloader.Profile.from_username(self.L.context, perfil).get_posts()
 
-    try:
+            for posts in postagens:
+                self.L.download_post(posts, perfil)
 
-        L.login(str(login), str(senha))
+            messagebox.showinfo(title="ATENÇÃO", message="Extração realizada com sucesso")
 
-        perfil = input("Perfil Alvo: ")
+        except:
 
-        Id = L.check_profile_id(perfil)
+            messagebox.showinfo(title="ATENÇÃO", message="Tente Novamente/Refaça o Login")
 
-        L.download_stories(userids=[Id], fast_update=True, filename_target=perfil + '-stories')
+    def stories(self):
 
-        print("Extração realizada com sucesso")
+        try:
 
-    except:
+            self.L.context.do_sleep()
 
-        print("Tente Novamente/Refaça o Login")
-        
-def favoritos(login, senha):
+            perfil = simpledialog.askstring(title="PERFIL", prompt="Perfil Alvo")
 
-    L = instaloader.Instaloader()
+            Id = self.L.check_profile_id(perfil)
 
-    try:
+            self.L.download_stories(userids=[Id], fast_update=True, filename_target=perfil + '-stories')
 
-        L.login(str(login), str(senha))
+            messagebox.showinfo(title="ATENÇÃO", message="Extração realizada com sucesso")
 
-        perfil = input("Perfil Alvo: ")
+        except:
 
-        #highlights = instaloader.Profile.from_username(L.context, perfil).get_highlights()
+            messagebox.showinfo(title="ATENÇÃO", message="Tente Novamente/Refaça o Login")
 
-        Id = L.check_profile_id(perfil)
+    def favoritos(self):
 
-        L.download_highlights(Id, fast_update=True, filename_target=perfil + '-highlights')
+        try:
 
-        #for high in highlights:
-            #L.download_highlights(high, perfil)
+            self.L.context.do_sleep()
 
-        print("Extração realizada com sucesso")
+            perfil = simpledialog.askstring(title="PERFIL", prompt="Perfil Alvo")
 
-    except:
+            Id = self.L.check_profile_id(perfil)
 
-        print("Tente Novamente/Refaça o Login")
+            self.L.download_highlights(Id, fast_update=True, filename_target=perfil + '-highlights')
 
+            messagebox.showinfo(title="ATENÇÃO", message="Extração realizada com sucesso")
 
-opcao = input("1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 5 - Extrair Highlights \n 0 - Fechar programa \n ")
+        except:
 
-while(int(opcao) < 4 or opcao != 0):
+            messagebox.showinfo(title="ATENÇÃO", message="Tente Novamente/Refaça o Login")
+
+scrapper = instagramScrapper()
+
+opcao = simpledialog.askstring(title="Escolha uma opção:", prompt=" 1 - Fazer Login \n 2 - Extrair Seguidores \n 3 - Extrair Seguindo \n 4 - Extrair todos os Posts \n 5 - Extrair Stories \n 6 - Extrair Highlights \n 0 - Fechar programa \n ")
+
+while(int(opcao) < 7 or opcao != 0):
 
     if (int(opcao) == 1):
-        login, senha = loginConta()
+
+        scrapper.loginConta()
+
     elif int(opcao) == 2:
-        extracaoSeguidores(login, senha)
+
+        scrapper.extracaoSeguidores()
+
     elif int(opcao) == 3:
-        postagens(login, senha)
+
+        scrapper.extracaoSeguindo()
 
     elif int(opcao) == 4:
-        stories(login, senha)
+        scrapper.postagens()
 
     elif int(opcao) == 5:
-        favoritos(login, senha)
+        scrapper.stories()
+
+    elif int(opcao) == 6:
+        scrapper.favoritos()
 
     elif int(opcao) == 0:
-        print("PROGRAMA FINALIZADO")
+        messagebox.showinfo(title="ENCERRANDO", message="PROGRAMA FINALIZADO")
         break
 
 
 
-    opcao = input("1 - Fazer Login \n 2 - Extrair seguidores/seguindo \n 3 - Extrair todos os Posts \n 4 - Extrair Stories \n 5 - Extrair Highlights \n 0 - Fechar programa \n ")
+    opcao = simpledialog.askstring(title="Escolha uma opção:", prompt=" 1 - Fazer Login \n 2 - Extrair Seguidores \n 3 - Extrair Seguindo \n 4 - Extrair todos os Posts \n 5 - Extrair Stories \n 6 - Extrair Highlights \n 0 - Fechar programa \n ")
